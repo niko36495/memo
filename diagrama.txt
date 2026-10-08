@@ -1,0 +1,509 @@
+Sí, Niko. Te explico **cómo construir un diagrama entidad-relación desde cero**, especialmente cómo decidir **PK, FK, cardinalidades, 1:1, 1:N y N:M**. Te lo voy a enfocar a lo que probablemente te pueden pedir en tu Corte 2 de MySQL.
+
+Ahora te lo explico **desde cero**, porque la clave no es memorizar “aquí va FK”, sino aprender a **deducirlo**.
+
+## 1. Primero: ¿qué es cada cosa?
+
+### PK — Primary Key
+
+Es la columna que **identifica de manera única** cada registro.
+
+Ejemplo:
+
+```text
+ESTUDIANTE
+----------------
+PK id_estudiante
+nombre
+correo
+```
+
+Si tienes:
+
+| id_estudiante | nombre |
+| ------------: | ------ |
+|             1 | Juan   |
+|             2 | Pedro  |
+|             3 | Ana    |
+
+El `id_estudiante` identifica inequívocamente a cada estudiante.
+
+**Regla mental:**
+
+> ¿Qué dato identifica únicamente a este registro?
+
+Ese probablemente es tu **PK**.
+
+---
+
+### FK — Foreign Key
+
+Es una columna que **apunta a la PK de otra tabla**.
+
+Por ejemplo:
+
+```text
+CLIENTE
+PK id_cliente
+nombre
+```
+
+y:
+
+```text
+PEDIDO
+PK id_pedido
+FK id_cliente
+fecha
+```
+
+¿Por qué `pedido.id_cliente` es FK?
+
+Porque contiene el ID del cliente al que pertenece ese pedido.
+
+```text
+CLIENTE                  PEDIDO
+PK id_cliente  <------   FK id_cliente
+```
+
+**Regla mental:**
+
+> Si una tabla necesita guardar "¿de quién es?", "¿a qué pertenece?" o "¿con qué se relaciona?", probablemente necesitas una FK.
+
+---
+
+# 2. ¿Cómo sé qué tablas crear?
+
+Lee el problema y busca los **sustantivos importantes**.
+
+Por ejemplo:
+
+> "Una tienda administra clientes, productos y pedidos. Un cliente puede realizar varios pedidos."
+
+Los sustantivos principales son:
+
+```text
+Cliente
+Producto
+Pedido
+```
+
+Entonces probablemente tienes:
+
+```text
+CLIENTE
+PRODUCTO
+PEDIDO
+```
+
+No conviertas automáticamente cada palabra en una tabla. Busca **objetos/entidades que tengan información propia**.
+
+---
+
+# 3. ¿Cómo sé qué atributos poner?
+
+Pregúntate:
+
+> ¿Qué información necesito guardar sobre esta entidad?
+
+Para `CLIENTE`:
+
+```text
+CLIENTE
+----------------
+PK id_cliente
+nombre
+correo
+telefono
+```
+
+Para `PRODUCTO`:
+
+```text
+PRODUCTO
+----------------
+PK id_producto
+nombre
+precio
+stock
+```
+
+Para `PEDIDO`:
+
+```text
+PEDIDO
+----------------
+PK id_pedido
+fecha
+total
+```
+
+---
+
+# 4. ¿Cuándo pongo una FK?
+
+Aquí está una de las partes más importantes.
+
+Supongamos:
+
+> Un cliente puede realizar muchos pedidos.
+
+Preguntamos:
+
+**¿Un cliente puede tener muchos pedidos?**
+
+Sí.
+
+**¿Un pedido puede pertenecer a varios clientes?**
+
+Normalmente no. Un pedido pertenece a **un cliente**.
+
+Entonces:
+
+```text
+CLIENTE 1 ───────── N PEDIDO
+```
+
+Como `PEDIDO` está en el lado **N**, ponemos la FK allí:
+
+```text
+CLIENTE
+PK id_cliente
+nombre
+
+        1
+        │
+        │
+        N
+
+PEDIDO
+PK id_pedido
+FK id_cliente
+fecha
+```
+
+### ⭐ Regla importantísima
+
+> En una relación **1:N**, la FK normalmente se coloca en la tabla del lado **N**.
+
+---
+
+# 5. ¿Qué significa 1:1?
+
+Ejemplo:
+
+> Una persona tiene un único pasaporte y cada pasaporte pertenece a una única persona.
+
+Entonces:
+
+```text
+PERSONA 1 ───── 1 PASAPORTE
+```
+
+Es una relación **1:1**.
+
+Dependiendo del diseño, la FK puede estar en una de las dos tablas, normalmente en la entidad que depende de la otra.
+
+Por ejemplo:
+
+```text
+PERSONA
+PK id_persona
+nombre
+
+PASAPORTE
+PK id_pasaporte
+FK id_persona
+numero
+```
+
+---
+
+# 6. ¿Qué significa N:M?
+
+Esta es MUY importante.
+
+Ejemplo:
+
+> Un estudiante puede matricularse en muchos cursos y un curso puede tener muchos estudiantes.
+
+Entonces:
+
+```text
+ESTUDIANTE N ───── N CURSO
+```
+
+Tenemos:
+
+```text
+Estudiante → muchos cursos
+Curso → muchos estudiantes
+```
+
+No ponemos simplemente una FK en una de las dos tablas.
+
+Creamos una tabla intermedia:
+
+```text
+ESTUDIANTE
+PK id_estudiante
+        │
+        │ 1
+        │
+        N
+MATRICULA
+PK/FK id_estudiante
+PK/FK id_curso
+        N
+        │
+        │ 1
+        │
+CURSO
+PK id_curso
+```
+
+La tabla `MATRICULA` resuelve el N:M.
+
+---
+
+# 7. ¿Qué es una PK compuesta?
+
+En el ejemplo anterior:
+
+```text
+MATRICULA
+-----------------------
+PK/FK id_estudiante
+PK/FK id_curso
+```
+
+Los dos campos juntos pueden formar la PK.
+
+Por ejemplo:
+
+| id_estudiante | id_curso |
+| ------------: | -------: |
+|             1 |       10 |
+|             1 |       20 |
+|             2 |       10 |
+
+La combinación:
+
+```text
+1 + 10
+```
+
+identifica una matrícula específica.
+
+Esto se llama **clave primaria compuesta**.
+
+---
+
+# 8. ¿Y en TU base `spotify_wrapped`?
+
+Aquí ya tenemos un ejemplo real.
+
+Tus tablas son:
+
+```text
+song
+----------------
+PK id_song
+name
+artist
+spotify_link
+```
+
+y:
+
+```text
+activity
+----------------
+PK id
+listen_date
+FK id_song
+```
+
+La relación es:
+
+```text
+SONG 1 ───────── N ACTIVITY
+```
+
+¿Por qué?
+
+Una canción puede aparecer **muchas veces** en el historial de escuchas.
+
+Por ejemplo:
+
+```text
+song
+id_song = ABC123
+name = Amor
+```
+
+Y `activity` podría tener:
+
+| id | listen_date | id_song |
+| -: | ----------- | ------- |
+|  1 | fecha A     | ABC123  |
+|  2 | fecha B     | ABC123  |
+|  3 | fecha C     | ABC123  |
+
+La misma canción aparece tres veces.
+
+Por eso:
+
+```text
+SONG
+PK id_song
+      │
+      │ 1
+      │
+      │ N
+ACTIVITY
+PK id
+FK id_song
+```
+
+Y esto es exactamente lo que utilizaste cuando hicimos:
+
+```sql
+SELECT activity.listen_date, song.name, song.artist
+FROM activity
+JOIN song
+ON activity.id_song = song.id_song;
+```
+
+El `JOIN` funciona gracias a esa relación.
+
+---
+
+# 🧠 Método para construir cualquier diagrama
+
+Cuando te den un problema en el parcial, haz esto **siempre en este orden**:
+
+### Paso 1 — Identifica entidades
+
+Busca los objetos principales.
+
+```text
+Cliente
+Producto
+Pedido
+```
+
+### Paso 2 — Identifica atributos
+
+¿Qué información guardo de cada uno?
+
+```text
+Cliente → nombre, correo
+Producto → nombre, precio
+Pedido → fecha, total
+```
+
+### Paso 3 — Busca el identificador
+
+Pregunta:
+
+> ¿Qué hace único a cada registro?
+
+```text
+Cliente → PK id_cliente
+Producto → PK id_producto
+Pedido → PK id_pedido
+```
+
+### Paso 4 — Busca relaciones
+
+Pregúntate:
+
+> ¿Quién pertenece a quién?
+
+### Paso 5 — Determina cardinalidad
+
+Pregunta **en ambos sentidos**:
+
+```text
+¿Un A puede tener muchos B?
+¿Un B puede pertenecer a muchos A?
+```
+
+Así determinas:
+
+```text
+1 : 1
+1 : N
+N : M
+```
+
+### Paso 6 — Coloca las FK
+
+Recuerda:
+
+```text
+1 : N
+      ↓
+FK va normalmente en N
+```
+
+Y:
+
+```text
+N : M
+      ↓
+crear tabla intermedia
+```
+
+### Paso 7 — Revisa
+
+Antes de terminar, verifica:
+
+```text
+☑ Todas las tablas tienen PK
+☑ Las FK apuntan a una PK existente
+☑ Las relaciones tienen cardinalidad
+☑ No hay N:M sin resolver
+☑ No estás duplicando información innecesariamente
+```
+
+---
+
+## ⭐ La chuleta que yo memorizaría
+
+```text
+PK
+↓
+Identifica un registro
+
+FK
+↓
+Conecta con otra tabla
+
+1 : 1
+↓
+Uno con uno
+
+1 : N
+↓
+Uno con muchos
+↓
+FK normalmente en N
+
+N : M
+↓
+Muchos con muchos
+↓
+Crear tabla intermedia
+
+PK compuesta
+↓
+Dos o más columnas forman juntas la PK
+```
+
+Y una última cosa importante para tu **Corte 2**: el diagrama no es solamente dibujar cajitas. Debes poder pasar de:
+
+**requisitos → entidades → atributos → PK → relaciones → cardinalidades → FK → tablas SQL → `JOIN`**
+
+Ese es el hilo que conecta todo lo que has estado estudiando.

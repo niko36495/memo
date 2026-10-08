@@ -1,0 +1,120 @@
+códigos para estudiar:
+- después del diagrama se debe ir a data base 
+- CREATE DATABASE spotify_wrapped;
+- SHOW TABLES;
+- USE spotify_wrapped;
+- DESCRIBE (aquí debe ir el nombre de la tabla); -> te muestra lo que hay en la tabla
+- SELECT *
+ FROM (aquí debe ir el nombre de la tabla) -> te muetra el contenido/registros de la tabla 
+- SELECT (columna)ej artist
+FROM (tabla) -> song
+WHERE (columna requerimiento) artist = 'Binomio de Oro de America';
+- SELECT *
+FROM () -> tabla
+WHERE ________; -> para el id usamso WHERE parara el donde id_song = 5
+-----------------------------------------------------
+cumplir condiciones con and y or
+	- and
+SELECT *
+FROM activity
+WHERE condicion1  -> id_song = 5
+AND condicion2;  -> id > 10;
+	- or
+SELECT *
+FROM activity
+WHERE condicion1  -> id_song = 5
+OR condicion2;  -> id = 0;
+	-like
+SELECT name, artist
+FROM song
+WHERE artist LIKE '%%'; -> ORO o diomedez
+
+NO PUEDE HABER UN SELECT artist
+FROM song
+
+SELECT name, artist
+FROM song
+WHERE artist LIKE '%de%'; UNO DESPUES DEL OTRO O VA DAR ERROR 
+
+	- ORDER BY
+	- ASD (asen) y DESC (des)
+SELECT name, artist
+FROM song
+ORDER BY name ASC;
+
+SELECT name, artist
+FROM song
+ORDER BY name ASC;
+
+OJO SOLO SE ORDENA LA COLUMNA NAME SI SE QUIERE ORDENAR UN ARTISTA O ALGO EN ESPECIFICO VOLVEMOS A USAR WHERE artist LIKE '%%'; ANTES DEL ORDER 
+
+	- LIMIT
+SELECT name, artist
+FROM song
+ORDER BY name ASC
+LIMIT ___; -> el limite que uno quiera ej 5
+
+	- funciones de agregaqcion 
+- COUNT() cuantos registros hay en la tabla
+SELECT COUNT(*)
+FROM (); -> tabla
+	- DISTINCT
+	 SELECT COUNT(DISTINCT artist)
+	 FROM song;
+	- AS
+	 SELECT COUNT(*) AS total_canciones
+	 FROM song;
+- SUM(): valores numéricos
+SELECT SUM(precio)
+FROM productos;
+- AVG(): promedio
+SELECT AVG(id_song)
+FROM song;
+- MAX(): valor máximo
+SELECT MAX(id_song)
+FROM song;
+- MIN(): valor minimo
+SELECT MIN(id_song)
+FROM song;
+	-IN 
+facilita escribir varias coas cosas ejemplo en vez de escribir varios OR lo simplificamos a :
+SELECT name, artist
+FROM song
+WHERE artist IN ('Diomedes', 'Bad Bunny', 'Shakira');
+	- GRUPO BY 
+SELECT artista -> aquí podemos juntarlo con un count con un as creamos una nueva columna con cuantas canciones tiene un artista 
+FROM song
+GROUP BY artist;
+/ ejemplo con as 
+SELECT artist, COUNT(*) AS cantidad_canciones
+FROM song
+GROUP BY artist;
+	-HAVING
+where filtra antes de agrupar mientras que having filtra después de agrupar con el group by
+SELECT artist, COUNT(*) AS cantidad_canciones
+FROM song
+GROUP BY artist
+HAVING cantidad_canciones > 10;
+	-JOIN
+unir info
+SELECT activity.listen_date, song.name, song.artist
+FROM activity
+JOIN song
+ON activity.id_song = song.id_song;
+	- INSERT, UPDATE y DELETE
+- insert :
+INSERT INTO song (id_song, name, artist, spotify_link)
+VALUES (
+    'NIKO_TEST_001',
+    'Mi Cancion',
+    'Niko',
+    'https://spotify.com/mi-cancion'
+);
+	- UPDATE
+UPDATE tabla
+SET columna = nuevo_valor
+WHERE condicion; -> SIN WHERE SE MODIFICARA TODOS LOS ARTISTAS (DATOS)
+	- DELETE
+DELETE FROM (tabla) -> song
+WHERE condicion; -> id_song = 'NIKO_TEST_001';
+
